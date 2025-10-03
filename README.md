@@ -1,17 +1,17 @@
 # AgentFabric — *weave agents, services, and policy into one stack*
 
-AgentFabric is a modular, cloud-native framework for building **agentic applications** that talk to **domain services** (Orders, Payments, Inventory, Notifications), run in **Kubernetes**, and are governed by **policy** (OPA/Rego). It couples **observability** (OTel), **service mesh**, and a **queue + ETL** lane for durable workflows.
+AgentFabric is a modular, cloud-native framework for building **agentic applications** that talk to **domain services** (Orders, Payments, Inventory, Notifications), run in **Kubernetes** (The Kubernetes Authors, n.d.), and are governed by **policy** via **OPA/Rego** (Open Policy Agent, n.d.). It couples **observability** with **OpenTelemetry** (OpenTelemetry Authors, n.d.), an optional **service mesh** such as **Istio** (Istio Authors, n.d.), and a **queue + ETL** lane using **NATS** (Synadia Communications, n.d.). It can expose tools/resources to agents through the **Model Context Protocol (MCP)** (OpenAI, n.d.).
 
 > **Why**: Most agent apps need more than a model—they need **routing, guardrails, approvals, audit, and service contracts**. AgentFabric supplies the fabric.
 
 ---
 
 ## Highlights
-- **Agent layer**: Orchestrator + Reasoning Engine (LLM/SLM), Memory, and Policy checks (OPA).
+- **Agent layer**: Orchestrator + Reasoning Engine (LLM/SLM), Memory, and Policy checks with OPA (Open Policy Agent, n.d.).
 - **Service layer**: REST microservices for Orders, Payments, Inventory, Notifications.
-- **Platform layer**: Kubernetes, Service Mesh (Istio), NATS (queue), Storage, Observability (OTel).
-- **Governance**: Externalized decisions (PDP), obligations such as PII redaction, audit trails.
-- **MCP**: Optional Model Context Protocol server to expose tools/resources to agents.
+- **Platform layer**: Kubernetes (The Kubernetes Authors, n.d.), Service Mesh e.g., Istio (Istio Authors, n.d.), NATS queue (Synadia Communications, n.d.), Storage, Observability with OpenTelemetry (OpenTelemetry Authors, n.d.).
+- **Governance**: Externalized decisions (PDP), obligations such as PII redaction, audit trails (Open Policy Agent, n.d.; OpenTelemetry Authors, n.d.).
+- **MCP**: Optional Model Context Protocol server to expose tools/resources to agents (OpenAI, n.d.).
 
 ---
 
@@ -172,7 +172,7 @@ requires_approval {
 }
 ```
 
-The orchestrator queries: `POST /v1/data/agent/allow` and can also read auxiliary data (e.g., `requires_approval`).
+The orchestrator queries: `POST /v1/data/agent/allow` and can also read auxiliary data (e.g., `requires_approval`) (Open Policy Agent, n.d.).
 
 ---
 
@@ -259,6 +259,18 @@ opa:
   ports:
     - "8181:8181"
 ```
+
+---
+
+## References (APA)
+
+- Istio Authors. (n.d.). *Istio documentation*. https://istio.io/latest/docs/
+- OpenAI. (n.d.). *Model Context Protocol (MCP)*. https://github.com/modelcontextprotocol
+- Open Policy Agent. (n.d.). *OPA documentation*. https://www.openpolicyagent.org/docs/latest/
+- OpenTelemetry Authors. (n.d.). *OpenTelemetry documentation*. https://opentelemetry.io/docs/
+- Synadia Communications, Inc. (n.d.). *NATS documentation*. https://docs.nats.io/
+- The Kubernetes Authors. (n.d.). *Kubernetes documentation*. https://kubernetes.io/docs/
+
 ---
 
 ## Author
