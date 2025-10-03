@@ -1,0 +1,7 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata: { name: agentfabric, namespace: agent-stack }
+spec:
+  hosts: ["agentfabric"]
+  http:
+  - route: [ { destination: { host: agentfabric, port: { number: 80 } } } ]

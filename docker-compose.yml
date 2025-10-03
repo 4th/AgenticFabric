@@ -1,0 +1,110 @@
+services:
+  nats:
+    image: nats:2.10-alpine
+    command: ["-js"]
+    ports:
+      - "4222:4222"
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.102.1
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-local.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4318:4318"
+    restart: unless-stopped
+
+  opa:
+    image: openpolicyagent/opa:latest   # valid tag; rootless is default behavior
+    command: ["run","-s","-a","0.0.0.0:8181","/policy"]  # serve HTTP on :8181, load all policies from /policy
+    volumes:
+      - ./policy/policy.rego:/policy/policy.rego:ro
+    ports:
+      - "8181:8181"
+    restart: unless-stopped
+
+  api-orders:
+    build:
+      context: .
+      dockerfile: api-orders/Dockerfile
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    depends_on:
+      - otel-collector
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+
+  api-payments:
+    build:
+      context: .
+      dockerfile: api-payments/Dockerfile
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    depends_on:
+      - otel-collector
+    ports:
+      - "8002:8000"
+    restart: unless-stopped
+
+  api-inventory:
+    build:
+      context: .
+      dockerfile: api-inventory/Dockerfile
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    depends_on:
+      - otel-collector
+    ports:
+      - "8003:8000"
+    restart: unless-stopped
+
+  api-notifications:
+    build:
+      context: .
+      dockerfile: api-notifications/Dockerfile
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    depends_on:
+      - otel-collector
+    ports:
+      - "8004:8000"
+    restart: unless-stopped
+
+  data-service:
+    build:
+      context: .
+      dockerfile: data-service/Dockerfile
+    environment:
+      NATS_URL: nats://nats:4222
+      ETL_SUBJECT: etl.jobs
+    depends_on:
+      - nats
+    restart: unless-stopped
+
+  agentfabric:
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
+    image: agentfabric-orchestrator:latest
+    environment:
+      INVENTORY_URL: http://api-inventory:8000
+      ORDERS_URL: http://api-orders:8000
+      PAYMENTS_URL: http://api-payments:8000
+      NOTIFY_URL: http://api-notifications:8000
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      # OPA rule path matches your policy package "agent" with rule "allow"
+      OPA_URL: http://opa:8181/v1/data/agent/allow
+      # AGENT_JWT_SECRET: "change-me"
+    depends_on:
+      - nats
+      - otel-collector
+      - opa
+      - api-orders
+      - api-payments
+      - api-inventory
+      - api-notifications
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: agentfabric, namespace: agent-stack }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: agentfabric } }
+  template:
+    metadata:
+      labels: { app: agentfabric }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: agentfabric
+        image: agentfabric-orchestrator:latest
+        ports: [ { containerPort: 8000 } ]
+        env:
+        - { name: INVENTORY_URL, value: "http://api-inventory.agent-stack.svc.cluster.local" }
+        - { name: ORDERS_URL, value: "http://api-orders.agent-stack.svc.cluster.local" }
+        - { name: PAYMENTS_URL, value: "http://api-payments.agent-stack.svc.cluster.local" }
+        - { name: NOTIFY_URL, value: "http://api-notifications.agent-stack.svc.cluster.local" }
+        - { name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector:4318" }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: agentfabric, namespace: agent-stack }
+spec:
+  selector: { app: agentfabric }
+  ports: [ { port: 80, targetPort: 8000 } ]
